@@ -1,0 +1,22 @@
+Java的定时任务
+　  package test;
+　　import java.util.Timer;
+　　public class TimeTaskTest {
+　　public static void main(String[] args){ Timer timer = new Timer();
+　　timer.schedule(new Task(), 60 * 1000);
+　　}
+　　}
+package test;
+　　import java.util.TimerTask;
+　　public class Task extends TimerTask { public void run()
+　　{
+　　System.out.println("定时任务执行");
+　　}
+　　}
+
+schedule方法的4个重载函数：
+public void schedule(TimerTask task,long delay)
+public void schedule(TimerTask task,long delay,long period)
+public void schedule(TimerTask task,Date time)
+public void schedule(TimerTask task,long delay,long period)
+j2ee中的定时任务在实际的项目中，往往定时任务需要对web工程中的资源进行操作，这样一来，用上面的单个程序的方式可能就有点力不从心了，因为很多 web工程的资源它操作不到。解决的办法是，使用Servlet，把执行定时任务的那些代码放到Servlet的init()函数里就可以了
