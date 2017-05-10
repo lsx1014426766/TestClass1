@@ -1,0 +1,83 @@
+参考xml
+         <response>
+      <resultCode>0</resultCode>
+      <message>success</message>
+      <genreId> 7777</genreId>
+      <stationList>
+      <station>
+      <stationId>3422</stationId>
+      <stationTitle>This is good station</stationTitle>
+      <stationImageUrl>image</stationImageUrl>
+      <stationDescription>desc </stationDescription>
+      <stationAutoShuffle>YES</stationAutoShuffle>
+      <stationBadgeTypeCode>1</stationBadgeTypeCode>
+      <songShortList>
+      <songShort>
+      <songStatus>1</songStatus>
+      <songId>8899</songId>
+      </songShort>
+      </songShortList>
+      </station>
+      </stationList>
+      </response>
+
+解析xml文件:
+
+   SAXReader reader ;
+		 Document   doc;
+		String path = "e:/atmd/testXml2.xml";
+		ArrayList<Object> docs = new ArrayList<Object>();
+		InputStream is = new FileInputStream(path);
+		 reader = new SAXReader();
+	        reader.setValidation(false);
+	        doc = reader.read(is);
+		Element rootElt = doc.getRootElement();
+		List<Element> stationlist = doc.selectNodes("//response/stationList/station");
+		String resultCode = rootElt.elementText("resultCode");	
+		for(int i= 0;i<stationlist.size();i++){
+			//每个station的属性值
+			MilkGetStationRp station=new MilkGetStationRp();
+			Element e = stationlist.get(i);
+			String stationid = e.elementText("stationId");
+			String stationTitle = e.elementText("stationTitle");
+			String stationImageUrl = e.elementText("stationImageUrl");
+			String stationDescription = e.elementText("stationDescription");
+			//返回的这个参数。。。。。
+			String stationBadgeTypeCode = e.elementText("stationBadgeTypeCode");
+			List<Element> list = e.selectNodes("songShortList/songShort");
+			List<MilkGetStationSongRp> songShortList = new ArrayList<MilkGetStationSongRp>();
+			for(int j= 0;j<list.size();j++){
+				MilkGetStationSongRp song = new MilkGetStationSongRp();
+				Element e2 = list.get(j);
+				String songStatus = e2.elementText("songStatus");
+				String songId = e2.elementText("songId");
+				
+				song.setSongId(Integer.parseInt(songId));
+				song.setSongStatus(Integer.parseInt(songStatus));
+				songShortList.add(song);
+				System.out.println("取得参数：状态，songid:"+songStatus+"/"+songId);
+			}
+测试2：解析xml字符串：
+   // 读取xml文本形式的字符串，而不是xml文件
+
+	public static void main(String[] args) throws DocumentException,
+			FileNotFoundException {
+		String xml = "<KV><Headline><![CDATA[]]></Headline><AlternateHeadline><![CDATA[]]></AlternateHeadline><AlternateDescription><![CDATA[]]></AlternateDescription><Description><![CDATA[]]></Description><JPG-320X320-NODELIST>/node/1-JPG-320X320-NODE.jpg</JPG-320X320-NODELIST><JPG-600X600-NODELIST>/node/1-JPG-600X600-NODE.jpg</JPG-600X600-NODELIST><JPG-NXN-NODELIST>/node/1-JPG-NXN-NODE.jpg</JPG-NXN-NODELIST></KV>";
+		SAXReader reader;
+		Document doc;
+		reader = new SAXReader();
+		reader.setValidation(false);
+		doc = reader.read(new StringReader(xml));//難點
+		Node n = doc.selectSingleNode("KV/JPG-320X320-NODELIST");
+		String s = n.getStringValue();
+		System.out.println(s);
+
+ //设置节点值
+ 方式一
+	 doc.selectSingleNode("KV/JPG-320X320-NODELIST").setText("ammmmm");
+		Node n = doc.selectSingleNode("KV/JPG-320X320-NODELIST");
+		System.out.println(n.getStringValue());
+ 方式二：
+	 Element e = doc.getRootElement();
+		e.setAttributeValue("JPG-320X320-NODELIST","wwww");
+		doc.setRootElement(e);
