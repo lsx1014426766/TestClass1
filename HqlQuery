@@ -1,0 +1,396 @@
+	public List<UserGenre> findAllUserGenre() {
+		/*Query q = getSession().createQuery("from UserGenre");
+		return q.list();*/
+		Query query = getSession().createQuery("select ug.genreId from UserGenre as ug left join Genre as g on ug.genreId=g.genreID where g.status=1");
+		List list = query.list();
+	    if(list!=null&&list.size()>0){
+	    	for(int i=0;i<list.size();i++){
+	    		Object object = list.get(0);
+	    	}
+	    }
+		
+		return (List<UserGenre>)query.list();
+	}
+	@Override
+	public String getGroupnameByGenreid(Integer genreid) {
+		String hql = "select gr.name from"
+				+ " Group as gr ,Groupgenres as gg  "
+				+ " where  gr.groupId=gg.groupId " + "and gg.genreId=:genreId ";
+		Session session = getSession();
+		Query query = session.createQuery(hql);
+		query.setInteger("genreId", genreid);
+		StringBuilder sb = new StringBuilder();
+		List list = query.list();
+		for (int i = 0; i < list.size(); i++) {
+			Object o = list.get(i);
+			sb.append((String)o + ",");
+		}
+		String s = sb.substring(0, sb.length() - 1);
+		return s;
+	}
+
+	public List findAllUserGenreIds() {
+		//Query query = getSession().createQuery("select ug.genreId from UserGenre as ug left join Genre as g on ug.genreId=g.genreID where g.status=1");
+		//Query query = getSession().createQuery("select ug.genreId from UserGenre as ug left outer join Genre as g on ug.genreId=g.genreID where g.status=1");
+		/*//用hql语句
+		Query query = getSession().createQuery("select ug.genreId from UserGenre as ug ,Genre as g   where  ug.genreId=g.genreID and g.status=1");
+		return query.list();*/
+		//用sql与语句
+		SQLQuery sqlQuery = getSession().createSQLQuery("select ug.* from UserGenre as ug left join GenreInfo as g on ug.genreId=g.genreID where g.status=1");
+	    List list =sqlQuery.list();
+	    return list;
+	}
+
+
+
+	@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath:applicationContext.xml",
+		"classpath:springweb-servlet.xml" })
+public class UserGenreDaoImplTest {
+	@Resource(name = "UserGenreDao")
+	private UserGenreDao dao;
+	@Test
+	public void testFindAllUserGenre() {
+		List list = dao.findAllUserGenreIds();
+		System.out.println(list.size());
+		if (list != null && list.size() > 0) {
+			UserGenre ug = null;
+			for (int i = 0; i < list.size(); i++) {
+				Object[] o = (Object[])list.get(i);
+				System.out.println(o[1] + "/" + o[2] + "/" + o[3] + "/" + o[4]
+						+ "/" + o[5] + "/" + o[6]);
+				ug = new UserGenre((Integer) o[1], (Integer) o[2], (Date) o[3],
+						(String) o[4], (Date) o[5], (String) o[6]);
+				System.out.println(ug.getCreateUser());
+			}
+		}
+	}
+
+}
+
+
+
+
+StringBuilder sb = new StringBuilder();
+		for (Integer i=1;i<4;i++) {
+			sb.append(i+",");
+		}
+		System.out.println(sb.deleteCharAt(sb.length()-1).toString());
+
+
+
+
+		public class TestSDF {
+	public static void main(String[] args) {
+		// 返回前台的是string类型的才可以按照规定的日期形式显示，如果format后又parse，还是原来的形式
+		/*
+		 * Date d=new Date(); SimpleDateFormat sdf = new
+		 * SimpleDateFormat("yyyy-MM-dd"); System.out.println(d.toString());
+		 * System.out.println(sdf.format(d));
+		 */
+		// List中存入null的处理 那也是有值
+		List<String> list = new ArrayList<String>();
+		list.add(null);
+		System.out.println(list.isEmpty());
+		System.out.println(list.get(0));
+		System.out.println(list != null && list.get(0) != null);
+		/*
+		 * Query q = getSession().createQuery("from UserGenre"); return
+		 * q.list();
+		 */
+
+	}
+}
+
+
+xml字符串
+public class GenreServImplTest {
+	 private  Map<String,Object>map=new HashMap<String,Object>();
+		@Resource(name="GenreServ")
+		private GenreServ serve;
+	@Test
+	public void testUpdateGenreAttri() {
+		Genre genre = serve.find(229);
+		if(genre!=null){
+			 ForGenreAttriDomain domain = new ForGenreAttriDomain();
+		     domain.setId(229);
+		     String pathName = "/genre/"+"mmmm";
+		     String path = "<JPG-600X600-GENRE>"+pathName+"</JPG-600X600-GENRE>";
+		     domain.setPath(path);
+		     System.out.println("11444:");
+		     System.out.println(genre.getAttribute());
+		     serve.updateGenreAttri(domain);
+		     System.out.println(genre.getAttribute());
+	}
+
+ }
+
+
+@Override
+	public Integer findCountByNameAndStatusAndGroupid(String NodelistName,
+			Integer groupid) {
+		Session session=getSession();
+		String sql="select nl.name from nodelist nl   left outer join Genrenodelists gn on gn.NodeListID = nl.NodeListID left  join groupgenres gg  on gg.GenreID = gn.GenreID  where   nl.Status =1 and gg.GroupID =:groupId  and nl.Name =:nodelistName"; 
+		//这里如果用count(*),后面在查询后，获取结果时总会抛出异常
+		//是关于类型转换的
+		Query sqlQuery = session.createSQLQuery(sql);
+		//Query query=session.createQuery(hql);
+		sqlQuery.setString("nodelistName",NodelistName);
+		sqlQuery.setInteger("groupId",groupid);
+		/*//
+		尝试1：Long r = (Long)sqlQuery.uniqueResult();
+	    尝试2：                 sqlQuery.iterator().next();
+		尝试3：List list = sqlQuery.list();
+			           Object[] object = (Object[])list.get(0);
+	               	Integer i = (Integer)object[0];
+		以上均抛出异常，返回的是bigInteger型的。。。转换不成功
+		改为返回string类型，达到同样的目的
+		*/
+    // 用hql来做  注意点：表名，字段名都要和实体类及其属性名保持一致
+	/*Session session=getSession();
+		String sql="select nl.name from nodelist nl   left outer join Genrenodelists gn on gn.NodeListID = nl.NodeListID left  join groupgenres gg  on gg.GenreID = gn.GenreID  where   nl.Status =1 and gg.GroupID =:groupId  and nl.Name =:nodelistName"; 
+		String hql="select nl.name from Nodelist nl,Genrenodelists gn,Groupgenres gg where gg.genreId = gn.genreId and gn.nodeListId = nl.nodeListId and gg.groupId=:groupId and nl.name=:nodelistName";
+		//Query sqlQuery = session.createSQLQuery(sql);
+		Query query=session.createQuery(hql);
+		query.setString("nodelistName",NodelistName);
+		query.setInteger("groupId",groupid);*/
+		Integer i=0;
+		List list = sqlQuery.list();
+		if(list!=null){
+			i=list.size();
+		}
+		return i.intValue();
+	}
+
+
+
+
+	// 新增电台讯息  ------创建的电台名在任何情况下不能重名（status=1的）
+	要修改为在一个曲风分类下不能重名
+	@RequestMapping(value = "/addNodeList")
+	@ResponseBody
+	public JsonResponse addNodeList(HttpServletRequest request,
+			HttpServletResponse response) {
+
+		logger.info(this.getClass().getSimpleName() + " addNodeList() begin");
+		logger.info("get Parameters begin");
+		// 1必选参数
+		String name = request.getParameter("name");
+		String genreid = request.getParameter("genreid");// group-nodelist一对一
+		String cttype = request.getParameter("cttype");// 由前台验证
+		// 2可选参数
+		String description = request.getParameter("description");
+		String mccode = request.getParameter("mccode");
+		String status = request.getParameter("status");
+		/*//增加3个参数，分别为320X320，640X640，NXN3种规格
+		String pic320 = request.getParameter("pic320");
+		String pic640 = request.getParameter("pic640");
+		String picN = request.getParameter("picN");*/
+		
+		logger.info("get Parameters end");
+		logger.info("check Parameters begin");
+		if (!CheckStringParam(genreid)) {
+			logger.info("Invalid input parameters:" + genreid);
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.InvalidParam.getStatus(),
+					ResHeaderEntity.InvalidParam.getInfo());
+			return jr;
+		}
+		if (!CheckNull(name) || !CheckNull(cttype)
+				|| !CheckIntegerParam(status)) {
+			logger.info("Invalid input parameters");
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.InvalidParam.getStatus(),
+					ResHeaderEntity.InvalidParam.getInfo());
+			jr = new JsonResponse(jrepheader, null);
+			return jr;
+		}
+		logger.info("check Parameters end");
+		logger.info("check station Name begin");
+		boolean result = nodelistServ.findByName(name, 0);
+		logger.info("check station Name end");
+		if (result) {
+			Nodelist nodelist = new Nodelist();
+			nodelist.setName(name);
+			nodelist.setCttype(cttype);
+			nodelist.setDescription(description == null ? "" : description);
+			// mccode为可选参数，暂设为空，也可根据cttype推出mccode
+			nodelist.setMccode(mccode == null ? "" : mccode);
+			nodelist.setStatus(status == null ? (short) 1 : Short
+					.parseShort(status));
+			nodelist.setCreateDate(new Date());
+
+			User c_user = (User) request.getSession().getAttribute("user");
+			if (c_user != null) {
+				nodelist.setCreateUser(c_user.getUserName());
+			}
+			String attribute = "<Nodelist>"
+					+ "<Headline>"
+					+ "<![CDATA[]]>"
+					+ "</Headline>"
+					+ "<AlternateHeadline>"
+					+ "<![CDATA[]]>"
+					+ "</AlternateHeadline>"
+					+ "<AlternateDescription><![CDATA[]]></AlternateDescription>"
+					+ "<Description>"
+					+ "<![CDATA[]]>"
+					+ "</Description>"
+					+ "<JPG-320X320-NODELIST></JPG-320X320-NODELIST>"
+					+ "<JPG-600X600-NODELIST></JPG-600X600-NODELIST>"
+					+ "<JPG-NXN-NODELIST></JPG-NXN-NODELIST>"
+					+ "</Nodelist>";
+			nodelist.setAttribute(attribute);
+			nodelistServ.add(nodelist);
+
+			try {
+				logger.info("save GenreNodelist begin"); // 关系建立
+				// 在创建nodelist时，所属的group,genre的关系已经创建。。
+				genreNodeListsServ.save(Integer.parseInt(genreid),
+						nodelist.getNodeListId());
+				logger.info("save GenreNodelist end");
+			} catch (Exception e) {
+				logger.error("save GenreNodelist fail");
+				e.printStackTrace();
+			}
+
+			logger.info("get nodelists begin");
+			jrepheader = new JResponseHeader("00", null);
+			List<Object> nodelists = new ArrayList<Object>();
+
+			NodelistEntity st = new NodelistEntity();
+			st.setNodelistID(nodelist.getNodeListId());
+			st.setName(nodelist.getName());
+			st.setStatus(nodelist.getStatus());
+			nodelists.add(st);
+			logger.info("nodelists:" + nodelists);
+			logger.info("get nodelists end");
+			jrepbody = new JResponseBody(nodelists, nodelists.size(), 0);
+			jr = new JsonResponse(jrepheader, jrepbody);
+			logger.info(this.getClass().getSimpleName() + " addNodelist() end");
+			return jr;
+		} else {
+			logger.info("NodeList " + name + " is already exist!");
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.NameDuplicated.getStatus(),
+					ResHeaderEntity.NameDuplicated.getInfo());
+			jr = new JsonResponse(jrepheader, null);
+			return jr;
+		}
+	}
+
+
+	@RequestMapping(value = "/updateNodeList")
+	@ResponseBody
+	public Object updateNodeList(HttpServletRequest request,
+			HttpServletResponse response) {
+		// 更新nodelist的基本信息，表关系的变动调用另外的api实现
+		logger.info(this.getClass().getSimpleName() + " updateNodeList() begin");
+		logger.info("get Parameters begin");
+		// 必选参数
+		String NodeListid = request.getParameter("NodeListid");
+		//增加参数groupid  必选参数  重名处理
+		String groupid=request.getParameter("groupid");
+		// 可选参数
+		String name = request.getParameter("name");
+		String description = request.getParameter("description");
+		// 会有单独的api处理关系
+		String genreid = request.getParameter("genreid");// 即便传递，且不接收
+		String mccode = request.getParameter("mccode");
+		String Status = request.getParameter("status");
+		logger.info("get Parameters end");
+		logger.info("check Parameters begin");
+		if (!CheckStringParam(NodeListid)||!CheckStringParam(groupid)) {
+			logger.info("Invalid input parameters NodeListid:" + NodeListid);
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.InvalidParam.getStatus(),
+					ResHeaderEntity.InvalidParam.getInfo());
+			return jr;
+		}
+		if (!CheckIntegerParam(genreid) || !CheckIntegerParam(Status)) {
+			logger.info("Invalid input parameters genreid or status");
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.InvalidParam.getStatus(),
+					ResHeaderEntity.InvalidParam.getInfo());
+			return jr;
+		}
+		Integer NodeListid_int = Integer.parseInt(NodeListid);
+		logger.info("check Parameters end");
+		logger.info("check name begin");
+		Short it = 1;
+		Integer size = nodelistServ.findCountByNameAndStatus(name, it);
+		logger.info("check name end");
+		Nodelist nodelist = nodelistServ.find(NodeListid_int);
+		if (size == 0
+				|| (size == 1 && nodelist.getNodeListId().intValue() == NodeListid_int)) {
+			if (nodelist != null) {
+				// 若前台不显示已经删除的nodelist，则此处不必再判断status
+				Short status = nodelist.getStatus();
+				if (2 == status.intValue()) {
+					logger.info(ResHeaderEntity.StatusWarning.getInfo()
+							+ " status=" + status);
+					jrepheader = new JResponseHeader(
+							ResHeaderEntity.StatusWarning.getStatus(),
+							ResHeaderEntity.StatusWarning.getInfo());
+					jr = new JsonResponse(jrepheader, null);
+					return jr;
+				}
+				nodelist.setName(name == null ? nodelist.getName() : name);
+				nodelist.setDescription(description == null ? nodelist
+						.getDescription() : description);
+				if (CheckNull(Status)) {
+					nodelist.setStatus(Short.parseShort(Status));// 前台做限制传值
+				}
+				nodelist.setMccode(mccode == null ? nodelist.getMccode()
+						: mccode);
+				nodelist.setModifyDate(new Date());
+				User m_user = (User) request.getSession().getAttribute("user");
+				if (m_user != null) {
+					nodelist.setModifyUser(m_user.getUserName());
+				}
+				nodelistServ.update(nodelist);
+				//genre-nodelist的关系表更新   调用另外的api单独处理
+			
+				/*if(genreid!=null && !"".equals(genreid)){
+					try {
+						if(genreNodeListsServ.find(Integer.parseInt(genreid), NodeListid_int)==null){
+							genreNodeListsServ.save(Integer.parseInt(genreid), NodeListid_int);
+						}
+					} catch (NumberFormatException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}*/
+				jrepheader = new JResponseHeader("00", null);
+				logger.info("get nodelists begin");
+				List<Object> nodelists = new ArrayList<Object>();
+				NodelistEntity st = new NodelistEntity();
+				st.setNodelistID(nodelist.getNodeListId());
+				st.setName(nodelist.getName());
+				st.setStatus(nodelist.getStatus());
+				nodelists.add(st);
+				logger.info("get nodelists end");
+				jrepbody = new JResponseBody(nodelists, nodelists.size(), 0);
+				jr = new JsonResponse(jrepheader, jrepbody);
+				logger.info(this.getClass().getSimpleName()
+						+ " updateNodelist() end");
+				return jr;
+			} else {
+				jrepheader = new JResponseHeader(
+						ResHeaderEntity.NotFound.getStatus(),
+						ResHeaderEntity.NotFound.getInfo());
+
+				jr = new JsonResponse(jrepheader, null);
+				return jr;
+			}
+		} else {
+			logger.info("Station " + name + " is already exist!");
+			jrepheader = new JResponseHeader(
+					ResHeaderEntity.NameDuplicated.getStatus(),
+					ResHeaderEntity.NameDuplicated.getInfo());
+			jr = new JsonResponse(jrepheader, null);
+			return jr;
+		}
+	}
